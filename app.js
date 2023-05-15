@@ -5,6 +5,7 @@ const { curly } = require("node-libcurl");
 const dotenvExpand = require("dotenv-expand");
 
 dotenvExpand.expand(dotenv.config());
+console.log("hello");
 
 const API_KEY = process.env.API_KEY;
 const API_SECRET = process.env.API_SECRET;
