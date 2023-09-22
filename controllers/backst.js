@@ -653,7 +653,7 @@ async function commonFunctionForDataInsert(leg) {
   let code = `NFO:BANKNIFTY${getThurday}${strike_price}${leg.call_put.toUpperCase()}`;
   let quote = await getQuotes([code]);
   let quoteval = quote ? quote[code] : null;
-  console.log("quotevalquotevalquoteval", quoteval);
+  // console.log("quotevalquotevalquoteval", quoteval);
   if (quoteval) {
     let currentRate = quoteval.last_price;
     let query = "INSERT INTO orders SET ?";

@@ -26,7 +26,7 @@ const getNiftyPrice = async () => {
 	code = ["NSE:NIFTY BANK"];
 	if (code) {
 		const quotes = await getQuotes(code);
-		console.log("codecodecodecodecodecodecode---->>>>", quotes);
+
 		return quotes?.["NSE:NIFTY BANK"]?.last_price;
 	}
 };

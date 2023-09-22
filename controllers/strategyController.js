@@ -5,6 +5,7 @@ const {
 	getPositions,
 	getOrderdata,
 	getOrders,
+	getLastMarketPrice,
 } = require("../config/kiteConnect");
 const moment = require("moment");
 const sql = require("../models/sqlConnection");
@@ -300,7 +301,6 @@ exports.addStrategy = async (req, res) => {
 									if (!err) {
 										isError = false;
 										if (s2l1) {
-											console.log("s2l1s2l1s2l1", s2l1);
 											sql.query(
 												`UPDATE legs SET strategy_id = ${str2_id},setting_id=${setting_id},buy_sell="${
 													leg3[0]
@@ -454,7 +454,6 @@ exports.positions = async () => {
 		.catch((error) => {
 			console.log("errorerrorerror", error);
 		});
-	console.log("positionDatapositionDatapositionData", positionData);
 	for (let index = 0; index < positionData?.length; index++) {
 		const element = positionData[index];
 
@@ -607,7 +606,7 @@ exports.strategiesWatcher = async () => {
 					}
 					for (let j = 0; j < chunkQuantities.length; j++) {
 						let order = [];
-						console.log("quotevalquotevalquoteval", quoteval, code);
+						// console.log("quotevalquotevalquoteval", quoteval, code);
 						if (quoteval) {
 							let currentRate = quoteval?.last_price;
 							let newData = {
@@ -685,7 +684,7 @@ exports.addOrder = async (req, res) => {
 					}
 				);
 			}
-			console.log("orderArrorderArr", orderArr);
+			// console.log("orderArrorderArr", orderArr);
 		}
 	} catch (err) {
 		console.log("err");
@@ -699,28 +698,38 @@ exports.orderWatcher = async () => {
 		)}'`,
 
 		async (err, res) => {
-			console.log("err-=-=-----=-=-=-=-=-=-=-->>>>>", err);
-			console.log("res-=-=-----=-=-=-=-=-=-=-->>>>>", res);
+			// console.log("err-=-=-----=-=-=-=-=-=-=-->>>>>", err);
+			console.log("res-=-=-----=-=-=-=-=-=-=-->>>>> len", res.length, res);
 
-			if (!err) {
+			let data = await getNiftyPrice();
+			// console.log("datdatdtdtadtdtdtadtdatd =========>>>>>>", data);
+
+			if (!err && res.length > 0) {
 				for (i in res) {
 					let order = res[i];
-					console.log("orderorderres", order);
+					console.log(
+						"order order res res res res Top =========>>>>>>>>>>>>>",
+						res.length,
+						order
+					);
 					const code = `NFO:BANKNIFTY${getThurday}${
 						order.strike_price
 					}${order.call_put.toUpperCase()}`;
 					const quote = await getQuotes([code]);
 					const currentRate = quote ? quote[code].last_price : 0;
-					let bnPrice = (await getNiftyPrice()) || order.entry_bn;
-
+					let bnPrice = data;
+					// let data = await getNiftyPrice();
 					let bnDiff = bnPrice - order.entry_bn;
 					let rateDiff = (currentRate - order.entry_price).toFixed(2);
 					let current_time = moment(new Date(), "HH:mm:ss").format("HH:mm");
 					let exit_sl_plus_price = order.entry_price + order.sl_value;
 					let exit_sl_minus_price = order.entry_price - order.sl_value;
-
+					console.log(
+						"order order res res res res Bottom =========>>>>>>>>>>>>>",
+						order
+					);
 					if (
-						(order.exit_time && current_time > order.exit_time) ||
+						(order.exit_time && current_time >= order.exit_time) ||
 						bnDiff >= order.exit_bn_profit ||
 						(bnDiff < 0 && Math.abs(bnDiff) >= order.exit_bn_loss) ||
 						(order.order_type === "SL" &&
@@ -736,44 +745,61 @@ exports.orderWatcher = async () => {
 						});
 					}
 				}
+			} else {
+				return;
 			}
 		}
 	);
 };
 exports.orderExitFunction = async (req, result) => {
-	let { order, currentRate, rateDiff, bnPrice } = req;
+	let { order, currentRate, rateDiff, i } = req;
 	let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-	let update_query = `UPDATE orders SET exit_price = ${currentRate},exit_date_time="${currentTime}", pnl=${rateDiff} ,exit_bn=${bnPrice} WHERE orders.id = ${
-		order.id
-	} AND created_at='${moment().format("YYYY-MM-DD")}' `;
-	let params = {
-		exchange: "NFO",
-		tradingsymbol: `BANKNIFTY${getThurday}${
-			order.strike_price
-		}${order.call_put.toUpperCase()}`,
-		transaction_type: order.buy_sell == "Buy" ? "SELL" : "BUY",
-		quantity: order.quantity,
-		product: "MIS",
-		order_type: order.order_type,
-	};
+	// let bnPrice = await getNiftyPrice();
+	let bnPrice = await getLastMarketPrice();
+	console.log("bnPricebnPricebnPricebnPricebnPrice-=-=-=-=-=->>>>>", bnPrice);
 
-	// if (place_order) {
-	sql.query(update_query, async (err, res) => {
-		if (err) {
-			console.log(err);
+	if (bnPrice) {
+		//  = data;
+		let update_query = `UPDATE orders SET exit_price = ${currentRate},exit_date_time="${currentTime}", pnl=${rateDiff} ,exit_bn=${bnPrice} WHERE orders.id = ${
+			order.id
+		} AND created_at='${moment().format("YYYY-MM-DD")}' `;
+		let params = {
+			exchange: "NFO",
+			tradingsymbol: `BANKNIFTY${getThurday}${
+				order.strike_price
+			}${order.call_put.toUpperCase()}`,
+			transaction_type: order.buy_sell == "Buy" ? "SELL" : "BUY",
+			quantity: order.quantity,
+			product: "MIS",
+			order_type: order.order_type,
+		};
+
+		if (
+			order.order_created &&
+			order.exit_date_time === null &&
+			order.exit_price === null
+		) {
+			sql.query(update_query, async (err, res) => {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log("place_orderplace_orderplace_order  -=--=-=-=> ", params);
+					await placeOrder("regular", params);
+				}
+			});
+			params.pnl = rateDiff;
+			params.exit_price = currentRate;
+			params.exit_date_time = currentTime;
+			params.time = moment().format("YYYY-MM-DD HH:mm:ss");
+			params.exit_bn = bnPrice;
+			logger.log("info", params);
 		} else {
-			console.log("place_orderplace_orderplace_order", params);
-
-			await placeOrder("regular", params);
+			console.log("come from else part in exit functions");
+			return;
 		}
-	});
-	params.pnl = rateDiff;
-	params.exit_price = currentRate;
-	params.exit_date_time = currentTime;
-	params.time = moment().format("YYYY-MM-DD HH:mm:ss");
-	params.exit_bn = bnPrice;
-	logger.log("info", params);
-	// }
+	} else {
+		return;
+	}
 };
 exports.getOrdermarketprice = async (req, result) => {
 	// console.log("reqreqreqreqreqreq----------->", req);
