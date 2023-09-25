@@ -18,34 +18,34 @@ const instrument_url = "https://api.kite.trade/quote?i=NSE:INFY&i=NSE:AWL";
 let sess_id;
 
 const checksum = hash
-  .sha256()
-  .update(`${API_KEY}${request_token}${API_SECRET}`)
-  .digest("hex");
+	.sha256()
+	.update(`${API_KEY}${request_token}${API_SECRET}`)
+	.digest("hex");
 
 async function getSessionId() {
-  const { headers } = await curly.get(login_url);
+	const { headers } = await curly.get(login_url);
 
-  const location = url.parse(headers[0].location, true);
-  sess_id = location.query.sess_id;
-  return sess_id;
+	const location = url.parse(headers[0].location, true);
+	sess_id = location.query.sess_id;
+	return sess_id;
 }
 
 async function login() {
-  const { statusCode, data, headers } = await curly.post(
-    "https://kite.zerodha.com/api/login",
-    {
-      postFields: JSON.stringify({ user_id: "JY8385", password: "galitein" }),
-      httpHeader: [
-        "Content-Type: application/json",
-        "Accept: application/json",
-        "X-Kite-Version: 3",
-      ],
-    }
-  );
+	const { statusCode, data, headers } = await curly.post(
+		"https://kite.zerodha.com/api/login",
+		{
+			postFields: JSON.stringify({ user_id: "JY8385", password: "galitein" }),
+			httpHeader: [
+				"Content-Type: application/json",
+				"Accept: application/json",
+				"X-Kite-Version: 3",
+			],
+		}
+	);
 
-  console.log(statusCode, data, headers);
+	console.log(statusCode, data, headers);
 }
 
 getSessionId().then(() => {
-  login();
+	login();
 });
