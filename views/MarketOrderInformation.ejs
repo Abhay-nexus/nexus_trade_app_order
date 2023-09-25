@@ -6,14 +6,21 @@
       <span>/</span>
       <span id="bankNiftyRound"></span>
     </h6>
+    <!-- <div class="back-btn">
+      <button
+        type="button"
+        onclick="location.href = 'http://localhost:7000/'"
+        class="btn btn btn-dark"
+      >
+        BACK
+      </button>
+    </div> -->
   </div>
 
   <div class="bank-status-div bg-info">
     <h6 class="bankNifty">
       <b>Status :</b>
-      <span id="bank-status"
-        ><span id="legs-stattus">Entry is not taken yet</span></span
-      >
+      <span id="bank-status"><span id="legs-stattus">Entry is not taken yet</span></span>
     </h6>
   </div>
   <div class="card pt-3 px-3 mb-3 main-status-box" id="main-status-box">
@@ -58,20 +65,10 @@
         </tr>
         <tr>
           <td colspan="2">
-            <button
-              type="button"
-              class="btn btn-danger"
-              id="all-order-market"
-              onclick="getOrdermarketprice('M')"
-            >
+            <button type="button" class="btn btn-danger" onclick="getOrdermarketprice('M')">
               M
             </button>
-            <button
-              type="button"
-              class="btn btn-danger"
-              id="all-order-sl"
-              onclick="getOrdermarketprice('SL')"
-            >
+            <button type="button" class="btn btn-danger" onclick="getOrdermarketprice('SL')">
               SL
             </button>
             <button type="button" class="btn btn-outline-warning text-dark">
@@ -82,14 +79,9 @@
       </tbody>
     </table>
   </div>
-  <script
-    type="text/JavaScript"
-    src="https://MomentJS.com/downloads/moment.js"
-  ></script>
   <script>
-    const getOrdermarketprice = (type) => {
-      // this.setAttribute("disabled");
-      window.location.href = `getOrdermarketprice/${type}`;
+    const getOrdermarketprice = () => {
+      window.location.href = `getOrdermarketprice`;
     };
     const getmarketprice = (id, type) => {
       console.log("iddddd", id, type);
@@ -98,8 +90,6 @@
     };
     const getStreagtry = (id, type) => {
       console.log("iddddd", id, type);
-      document.getElementById(`stra${id}`).disabled = true;
-
       window.location.href = `/OrderStrategy/${id}/${type}`;
     };
     let marketorder;
@@ -107,16 +97,6 @@
     var target = document.getElementById("order-info");
     var target1 = document.getElementById("order-infos");
     var btPrice;
-    setInterval(async () => {
-      var CurrentDate = moment().format("HH:mm");
-      let get_time = localStorage.getItem("entry-time");
-      console.log("hello", CurrentDate, get_time);
-      if (CurrentDate === get_time) {
-        window.location.reload();
-      } else {
-        return;
-      }
-    }, 60000);
     setInterval(async () => {
       socket.emit("nifty-data", marketorder);
 
@@ -132,8 +112,6 @@
     socket.on("order-data-getted", function (data) {
       let strDiv = document.createElement("div");
       let strDiv1 = document.createElement("div");
-      var strId1;
-      var strId;
 
       entrytime = data[0]?.entry_date_time;
       if (data.length === 0) {
@@ -145,7 +123,6 @@
         document.getElementById("total-part-section").style.display = "block";
         data.map((item) => {
           if (item.strategy_id % 2 == 0) {
-            strId = item.strategy_id;
             document.getElementById("main-status-box").style.display = "block";
 
             let row = document.createElement("tr");
@@ -154,25 +131,24 @@
             let div = document.createElement("div");
             let divqut = document.createElement("div");
             let spanQut = document.createElement("span");
-            let rowDisable = document.createElement("tr");
 
             div.innerHTML =
               item.buy_sell === "Buy"
                 ? "Buy" +
-                  " " +
-                  item.strikeCurrent +
-                  " " +
-                  item.call_put +
-                  " " +
-                  "Q" +
-                  item.quantity / 25
+                " " +
+                item.strikeCurrent +
+                " " +
+                item.call_put +
+                " " +
+                "Q" +
+                item.quantity / 25
                 : "Sell" +
-                  item.strikeCurrent +
-                  " " +
-                  item.call_put +
-                  "Q" +
-                  item.quantity / 25 +
-                  " ";
+                item.strikeCurrent +
+                " " +
+                item.call_put +
+                "Q" +
+                item.quantity / 25 +
+                " ";
             let qtySher = item.strike_price + item.call_put;
             spanQut.innerHTML = " " + "(" + qtySher + ")";
             divqut.innerHTML = "QUT : " + item.quantity;
@@ -184,10 +160,8 @@
             let td1 = document.createElement("td");
             let totalDiv = document.createElement("div");
             let arrowdiv = document.createElement("div");
-            arrowdiv.innerHTML =
-              "<i class='fa fa-chevron-down' onclick='myFunction(\"leg1-btn" +
-              item.id +
-              "\")' aria-hidden='true'></i>";
+            arrowdiv.innerText =
+              '<i class="fa fa-chevron-down" aria-hidden="true"></i>';
             arrowdiv.setAttribute("class", "open-btn d-md-none");
 
             totalDiv.setAttribute("align", "center");
@@ -216,54 +190,38 @@
             td2.setAttribute("align", "center");
             row.appendChild(td2);
             document.getElementById("s1Id").innerText = item.name;
-            rowDisable.style.display = "none";
-            rowDisable.setAttribute("id", `leg1-btn${item.id}`);
-
-            rowDisable.innerHTML = `<tr style="display: none" id="leg1-btn" class="leg1-btn d-md-none">
-          <td colspan="3">
-            <button type="button"  id="btnRes${item.id}" onclick=getmarketprice(${item.id},"m")  class="btn btn-danger">M</button>
-            <button type="button" " id="slRes${item.id}" onclick=getmarketprice(${item.id},"SL") class="btn btn-danger">SL</button>
-            <button type="button" class="btn btn-outline-warning text-dark">
-              Orders
-            </button>
-          </td>
-        </tr>`;
-
             target.appendChild(row).setAttribute("id", "leg-tr");
-            target.appendChild(rowDisable);
             strDiv.innerHTML = `<button type="button" class="btn btn-danger" id="stra${item.strategy_id}" onclick=getStreagtry(${item.strategy_id},"m")>M</button>
           <button type="button" class="btn btn-danger" id="stra${item.strategy_id}" onclick=getStreagtry(${item.strategy_id},"SL")>SL</button>
           <button type="button" class="btn btn-outline-warning text-dark">Orders</button>`;
           } else {
-            strId1 = item.strategy_id;
             document.getElementById("main-status-box1").style.display = "block";
-            let rowDisable1 = document.createElement("tr");
+
             let row = document.createElement("tr");
             let td = document.createElement("td");
             let span = document.createElement("span");
             let div = document.createElement("div");
             let divqut = document.createElement("div");
             let spanQut = document.createElement("span");
-
             document.getElementById("s2Id").innerText = item.name;
 
             div.innerHTML =
               item.buy_sell === "Buy"
                 ? "Buy" +
-                  " " +
-                  item.strikeCurrent +
-                  " " +
-                  item.call_put +
-                  " " +
-                  "Q" +
-                  item.quantity / 25
+                " " +
+                item.strikeCurrent +
+                " " +
+                item.call_put +
+                " " +
+                "Q" +
+                item.quantity / 25
                 : "Sell" +
-                  item.strikeCurrent +
-                  " " +
-                  item.call_put +
-                  "Q" +
-                  item.quantity / 25 +
-                  " ";
+                item.strikeCurrent +
+                " " +
+                item.call_put +
+                "Q" +
+                item.quantity / 25 +
+                " ";
             let qtySher = item.strike_price + item.call_put;
             spanQut.innerHTML = " " + "(" + qtySher + ")";
             divqut.innerHTML = "QUT : " + item.quantity;
@@ -274,21 +232,15 @@
             row.appendChild(td);
             let td1 = document.createElement("td");
             let totalDiv = document.createElement("div");
+            let arrowdiv = document.createElement("div");
+            arrowdiv.innerText =
+              '<i class="fa fa-chevron-down" aria-hidden="true"></i>';
+            arrowdiv.setAttribute("class", "open-btn d-md-none");
 
             totalDiv.setAttribute("align", "center");
             td1
               .appendChild(totalDiv)
               .setAttribute("id", `totalprofitTd${item.id}`);
-            let arrowdiv = document.createElement("div");
-            arrowdiv.setAttribute("class", "open-btn d-md-none");
-
-            arrowdiv.innerHTML =
-              "<i class='fa fa-chevron-down' onclick='myFunction(\"leg1-btn" +
-              item.id +
-              "\")' aria-hidden='true'></i>";
-
-            td1.appendChild(arrowdiv);
-
             td1.appendChild(arrowdiv);
 
             row
@@ -309,26 +261,12 @@
             td2.appendChild(divBtn);
             td2.setAttribute("align", "center");
             row.appendChild(td2);
-            rowDisable1.innerHTML = `<tr style='display: none' id='leg1-btn' class="leg1-btn d-md-none">
-          <td colspan="3">
-            <button type="button" id="btnRes${item.id}" onclick=getmarketprice(${item.id},"m") class="btn btn-danger">M</button>
-            <button type="button"  id="slRes${item.id}" onclick=getmarketprice(${item.id},"SL") class="btn btn-danger">SL</button>
-            <button type="button" class="btn btn-outline-warning text-dark">
-              Orders
-            </button>
-          </td>
-        </tr>`;
-            rowDisable1.setAttribute("id", `leg1-btn${item.id}`);
 
-            rowDisable1.style.display = "none";
             target1.appendChild(row).setAttribute("id", "leg-tr");
-            target1.appendChild(rowDisable1);
-
             strDiv1.innerHTML = `<button type="button" class="btn btn-danger" id="stra${item.strategy_id}" onclick=getStreagtry(${item.strategy_id},"m")>M</button>
               <button type="button" class="btn btn-danger" id="stra${item.strategy_id}" onclick=getStreagtry(${item.strategy_id},"SL")>SL</button>
                <button type="button" class="btn btn-outline-warning text-dark">Orders</button>`;
           }
-
           document.getElementById("bankNiftyRound").innerText =
             item.entrystrike;
         });
@@ -338,23 +276,22 @@
         var totalprofit = document.createElement("td");
         var divTotalProfit = document.createElement("div");
         var arrowTotalProfit = document.createElement("div");
-        var rowDatafunc = document.createElement("tr");
-        rowDatafunc.setAttribute("id", "str-btn");
-        rowDatafunc.style.display = "none";
-        rowDatafunc.innerHTML = `
-        <tr style='display: none' id='leg1-btn' class="leg1-btn d-md-none">
-          <td colspan="3">
-            <button type="button" id="btnRes${strId}" onclick=getmarketprice(${strId},"m") class="btn btn-danger">M</button>
-            <button type="button"  id="slRes${strId}" onclick=getmarketprice(${strId},"SL") class="btn btn-danger">SL</button>
-            <button type="button" class="btn btn-outline-warning text-dark">
-              Orders
-            </button>
-          </td>
-        </tr>
-        `;
+
         let strOrder = document.createElement("td");
+        console.log("datadatadatadata", data.length);
+
+        var rowData1 = document.createElement("tr");
+        var mainTd1 = document.createElement("td");
+        var profit1 = document.createElement("td");
+        var totalprofit1 = document.createElement("td");
+        var divTotalProfit1 = document.createElement("div");
+        var arrowTotalProfit1 = document.createElement("div");
+        let strOrder1 = document.createElement("td");
+
+        // profit.innerHTML = "<b>" + profitCount.toFixed(2) + "</b>";
+        // divTotalProfit.innerHTML = "<b>" + totalprofitCount.toFixed(2) + "</b>";
         arrowTotalProfit.innerHTML =
-          "<i class='fa fa-chevron-down' onclick=myFunction('str-btn')   aria-hidden='true'></i>";
+          "<i class='fa fa-chevron-down' aria-hidden='true'></i>";
         totalprofit.appendChild(divTotalProfit);
         totalprofit
           .appendChild(arrowTotalProfit)
@@ -364,38 +301,16 @@
         mainTd.setAttribute("id", "positionPNL");
         rowData.appendChild(mainTd);
         profit.setAttribute("id", "profit");
+        rowData.appendChild(profit);
+
+        rowData.appendChild(totalprofit);
         strDiv.setAttribute("class", "d-sm-none d-none d-md-block");
+        strDiv1.setAttribute("class", "d-sm-none d-none d-md-block");
         strOrder.appendChild(strDiv);
         strOrder.setAttribute("align", "center");
-        rowData.appendChild(profit);
-        rowData.appendChild(totalprofit);
+
         rowData.appendChild(strOrder);
         target.appendChild(rowData);
-        target.appendChild(rowDatafunc);
-        if (strId != undefined) {
-        }
-
-        var rowData1 = document.createElement("tr");
-        var mainTd1 = document.createElement("td");
-        var profit1 = document.createElement("td");
-        var totalprofit1 = document.createElement("td");
-        var divTotalProfit1 = document.createElement("div");
-        var arrowTotalProfit1 = document.createElement("div");
-        let strOrder1 = document.createElement("td");
-        var rowDatafunc1 = document.createElement("tr");
-        rowDatafunc1.setAttribute("id", "str1-btn");
-        rowDatafunc1.style.display = "none";
-        rowDatafunc1.innerHTML = `
-        <tr style='display: none' id='leg1-btn' class="leg1-btn d-md-none">
-          <td colspan="3">
-            <button type="button" id="btnRes${strId1}" onclick=getmarketprice(${strId1},"m") class="btn btn-danger">M</button>
-            <button type="button"  id="slRes${strId1}" onclick=getmarketprice(${strId1},"SL") class="btn btn-danger">SL</button>
-            <button type="button" class="btn btn-outline-warning text-dark">
-              Orders
-            </button>
-          </td>
-        </tr>
-        `;
 
         profit1.setAttribute("id", "profit1");
         divTotalProfit1.setAttribute("id", "totalprofit1");
@@ -403,7 +318,7 @@
         // profit1.innerHTML = "<b>" + profitCount1.toFixed(2) + "</b>";
         // divTotalProfit1.innerHTML = "<b>" + totalprofitCount1.toFixed(2) + "</b>";
         arrowTotalProfit1.innerHTML =
-          "<i class='fa fa-chevron-down' onclick=myFunction('str1-btn') aria-hidden='true'></i>";
+          "<i class='fa fa-chevron-down' aria-hidden='true'></i>";
         totalprofit1.appendChild(divTotalProfit1);
         totalprofit1
           .appendChild(arrowTotalProfit1)
@@ -414,19 +329,16 @@
         rowData1.appendChild(totalprofit1);
 
         strOrder1.appendChild(strDiv1);
-        strDiv1.setAttribute("class", "d-sm-none d-none d-md-block");
-
         strOrder1.setAttribute("align", "center");
+
         rowData1.appendChild(strOrder1);
-        if (strId1 != undefined) {
-          target1.appendChild(rowData1);
-          target1.appendChild(rowDatafunc1);
-        }
+        target1.appendChild(rowData1);
       }
     });
     setInterval(async () => {
       socket.emit("order-final-data", orderDetail);
       socket.on("order-final-data-getted", function (data) {
+        console.log("datadatadatadata----->", data);
         let profitCount = 0;
         let totalprofitCount = 0;
         let profitCount1 = 0;
@@ -434,9 +346,6 @@
         let totalqty = 0;
         var endTime;
         var startTime;
-        var qtyS1 = 0;
-        var qtyS2 = 0;
-
         data.forEach(function (items) {
           if (items.strategy_id % 2 == 0) {
             profitCount +=
@@ -445,9 +354,8 @@
                   ? items.pnl
                   : items.current_value - items.entry_price
                 : items.pnl
-                ? items.pnl
-                : items.entry_price - items.current_value;
-            qtyS1 += items.quantity;
+                  ? items.pnl
+                  : items.entry_price - items.current_value;
 
             totalprofitCount +=
               items.buy_sell === "Buy"
@@ -455,85 +363,9 @@
                   ? items.pnl * items.quantity
                   : (items.current_value - items.entry_price) * items.quantity
                 : items.pnl
-                ? items.pnl * items.quantity
-                : (items.entry_price - items.current_value) * items.quantity;
-            totalqty += items.quantity;
-            if (items.orderError) {
-              document
-                .getElementById(`profitTd${items.id}`)
-                .classList.add("profitTd");
-              document.getElementById(`profitTd${items.id}`).innerText =
-                items.orderError.substring(0, 47).concat("...");
-            } else {
-              document.getElementById(`profitTd${items.id}`).innerText = items
-                ? isNaN(
-                    (items.exit_date_time !== null
-                      ? items.exit_price - items.entry_price
-                      : items.current_value - items.entry_price
-                    ).toFixed(2)
-                  )
-                  ? "0.00"
-                  : (items.exit_date_time !== null
-                      ? items.exit_price - items.entry_price
-                      : items.current_value - items.entry_price
-                    ).toFixed(2)
-                : "0.00";
-            }
-
-            document.getElementById(`totalprofitTd${items.id}`).innerText =
-              items
-                ? items.orderError
-                  ? "0.00"
-                  : isNaN(
-                      (items.exit_date_time !== null
-                        ? (items.exit_price - items.entry_price) *
-                          items.quantity
-                        : (items.current_value - items.entry_price) *
-                          items.quantity
-                      ).toFixed(2)
-                    )
-                  ? "0.00"
-                  : (items.exit_date_time !== null
-                      ? (items.exit_price - items.entry_price) * items.quantity
-                      : (items.current_value - items.entry_price) *
-                        items.quantity
-                    ).toFixed(2)
-                : "0.00";
-            document.getElementById("legs-stattus").innerText = items.exit_price
-              ? "Two strategy exit"
-              : "Two strategy active";
-            if (items.pnl !== null) {
-              document.getElementById(`btn${items.id}`).disabled = true;
-              document.getElementById(`sl${items.id}`).disabled = true;
-            }
-          } else {
-            if (items.pnl !== null) {
-              document.getElementById(`btn${items.id}`).disabled = true;
-              document.getElementById(`btnRes${items.id}`).disabled = true;
-              document.getElementById(`sl${items.id}`).disabled = true;
-              document.getElementById(`slRes${items.id}`).disabled = true;
-
-              // document.getElementById(`stra${items.id}`).disabled = true;
-            }
-            totalqty += items.quantity;
-            qtyS2 += items.quantity;
-
-            profitCount1 +=
-              items.buy_sell === "Buy"
-                ? items.pnl
-                  ? items.pnl
-                  : items.current_value - items.entry_price
-                : items.pnl
-                ? items.pnl
-                : items.entry_price - items.current_value;
-            totalprofitCount1 +=
-              items.buy_sell === "Buy"
-                ? items.pnl
                   ? items.pnl * items.quantity
-                  : (items.current_value - items.entry_price) * items.quantity
-                : items.pnl
-                ? items.pnl * items.quantity
-                : (items.entry_price - items.current_value) * items.quantity;
+                  : (items.entry_price - items.current_value) * items.quantity;
+            totalqty += items.quantity;
             if (items.orderError) {
               document
                 .getElementById(`profitTd${items.id}`)
@@ -549,59 +381,148 @@
               )
                 ? "0.00"
                 : (items.exit_date_time !== null
-                    ? items.exit_price - items.entry_price
-                    : items.current_value - items.entry_price
+                  ? items.exit_price - items.entry_price
+                  : items.current_value - items.entry_price
+                ).toFixed(2);
+            }
+
+            document.getElementById(`totalprofitTd${items.id}`).innerText =
+              items.orderError
+                ? "0.00"
+                : isNaN(
+                  (items.exit_date_time !== null
+                    ? (items.exit_price - items.entry_price) * items.quantity
+                    : (items.current_value - items.entry_price) *
+                    items.quantity
+                  ).toFixed(2)
+                )
+                  ? "0.00"
+                  : (items.exit_date_time !== null
+                    ? (items.exit_price - items.entry_price) * items.quantity
+                    : (items.current_value - items.entry_price) * items.quantity
                   ).toFixed(2);
+            document.getElementById("legs-stattus").innerText = items.exit_price
+              ? "Two strategy exit"
+              : "Two strategy active";
+            console.log("items.pnlitems.pnlitems.pnl", items.pnl);
+            if (items.pnl !== null) {
+              document.getElementById(`btn${items.id}`).disabled = true;
+              document.getElementById(`sl${items.id}`).disabled = true;
+              // document.getElementById(`stra${items.id}`).disabled = true;
+            }
+          } else {
+            if (items.pnl !== null) {
+              document.getElementById(`btn${items.id}`).disabled = true;
+              document.getElementById(`sl${items.id}`).disabled = true;
+              // document.getElementById(`stra${items.id}`).disabled = true;
+            }
+            totalqty += items.quantity;
+            profitCount1 +=
+              items.buy_sell === "Buy"
+                ? items.pnl
+                  ? items.pnl
+                  : items.current_value - items.entry_price
+                : items.pnl
+                  ? items.pnl
+                  : items.entry_price - items.current_value;
+            totalprofitCount1 +=
+              items.buy_sell === "Buy"
+                ? items.pnl
+                  ? items.pnl * items.quantity
+                  : (items.current_value - items.entry_price) * items.quantity
+                : items.pnl
+                  ? items.pnl * items.quantity
+                  : (items.entry_price - items.current_value) * items.quantity;
+            if (items.orderError) {
+              document
+                .getElementById(`profitTd${items.id}`)
+                .classList.add("profitTd");
+              document.getElementById(`profitTd${items.id}`).innerText =
+                items.orderError.substring(0, 47).concat("...");
+            } else {
+              document.getElementById(`profitTd${items.id}`).innerText = isNaN(
+                (items.exit_date_time !== null
+                  ? items.exit_price - items.entry_price
+                  : items.current_value - items.entry_price
+                ).toFixed(2)
+              )
+                ? "0.00"
+                : (items.exit_date_time !== null
+                  ? items.exit_price - items.entry_price
+                  : items.current_value - items.entry_price
+                ).toFixed(2);
             }
             document.getElementById(`totalprofitTd${items.id}`).innerText =
               items.orderError
                 ? "0.00"
                 : isNaN(
-                    (items.exit_date_time !== null
-                      ? (items.exit_price - items.entry_price) * items.quantity
-                      : (items.current_value - items.entry_price) *
-                        items.quantity
-                    ).toFixed(2)
-                  )
-                ? "0.00"
-                : (items.exit_date_time !== null
+                  (items.exit_date_time !== null
+                    ? (items.exit_price - items.entry_price) * items.quantity
+                    : (items.current_value - items.entry_price) *
+                    items.quantity
+                  ).toFixed(2)
+                )
+                  ? "0.00"
+                  : (items.exit_date_time !== null
                     ? (items.exit_price - items.entry_price) * items.quantity
                     : (items.current_value - items.entry_price) * items.quantity
                   ).toFixed(2);
             document.getElementById("legs-stattus").innerText = items.exit_price
               ? "One strategy exit"
               : "One strategy active";
+            console.log(
+              "profitCountprofitCountprofitCountprofitCount1",
+              profitCount1
+            );
           }
 
           document.getElementById("profit").innerText = items.orderError
             ? "0.00"
             : isNaN(profitCount.toFixed(2))
-            ? "0.00"
-            : profitCount.toFixed(2);
+              ? "0.00"
+              : profitCount.toFixed(2);
           document.getElementById("totalprofit").innerHTML = items.orderError
             ? "0.00"
             : isNaN(totalprofitCount.toFixed(2))
-            ? "<b>" + "0.00" + "</b>"
-            : "<b>" + totalprofitCount.toFixed(2) + "</b>";
+              ? "<b>" + "0.00" + "</b>"
+              : "<b>" + totalprofitCount.toFixed(2) + "</b>";
           document.getElementById("profit1").innerText = items.orderError
             ? "0.00"
             : isNaN(profitCount1.toFixed(2))
-            ? "0.00"
-            : profitCount1.toFixed(2);
+              ? "0.00"
+              : profitCount1.toFixed(2);
 
           document.getElementById("totalprofit1").innerHTML = items.orderError
             ? "0.00"
             : isNaN(totalprofitCount1.toFixed(2))
-            ? "<b>" + "0.00" + "</b>"
-            : "<b>" + totalprofitCount1.toFixed(2) + "</b>";
-
+              ? "<b>" + "0.00" + "</b>"
+              : "<b>" + totalprofitCount1.toFixed(2) + "</b>";
+          console.log(
+            "totalprofitCount1totalprofitCount1",
+            profitCount,
+            totalprofitCount,
+            profitCount1,
+            totalprofitCount1
+          );
           let entryBn = items.entry_bn;
 
           let profitBn = items.exit_bn_profit;
           let lossBn = items.exit_bn_loss;
           let pointPlus = entryBn + profitBn;
           let pointMinus = entryBn - lossBn;
-          let totalRecords = data.length;
+
+          console.log(
+            "pointsreaching",
+            entryBn,
+            profitBn,
+            lossBn,
+            pointPlus,
+            pointMinus,
+            btPrice,
+            pointPlus - btPrice,
+            btPrice - pointMinus,
+            items.exit_date_time
+          );
 
           if (
             (pointPlus !== btPrice || pointMinus !== btPrice) &&
@@ -611,13 +532,9 @@
               (pointPlus - btPrice).toFixed(2) +
               (pointMinus - btPrice).toFixed(2);
           } else {
-            // document.getElementsByClassName("all-order-market").setAttribute(dis)
-            // document.getElementById("all-order-market").disabled = true;
-            // document.getElementById("all-order-sl").disabled = true;
             document.getElementById("point-reached").innerText =
               "Point reached";
           }
-
           document.getElementById("pointReach").innerText =
             "Point required to reach " +
             items.exit_bn_profit +
@@ -639,30 +556,19 @@
           endTime = moment(endTime, "HH:mm:ss a");
         });
 
-        var hrs = moment.utc(endTime?.diff(startTime)).format("HH");
-        var min = moment.utc(endTime?.diff(startTime)).format("mm");
-        var sec = moment.utc(endTime?.diff(startTime)).format("ss");
+        var hrs = moment.utc(endTime.diff(startTime)).format("HH");
+        var min = moment.utc(endTime.diff(startTime)).format("mm");
+        var sec = moment.utc(endTime.diff(startTime)).format("ss");
         document.getElementById("Strategieswatch").innerText = [
-          hrs !== "Invalid date" ? hrs : "00",
-          min !== "Invalid date" ? min : "00",
-          sec !== "Invalid date" ? sec : "00",
+          hrs,
+          min,
+          sec,
         ].join(":");
-
         document.getElementById("pnlq").innerText = isNaN(
           ((totalprofitCount + totalprofitCount1) * 25).toFixed(2)
         )
           ? "0.00"
-          : isNaN(
-              (
-                (totalprofitCount / qtyS1) * 25 +
-                (totalprofitCount1 / qtyS2) * 25
-              ).toFixed(2)
-            )
-          ? "0.00"
-          : (
-              (totalprofitCount / qtyS1) * 25 +
-              (totalprofitCount1 / qtyS2) * 25
-            ).toFixed(2);
+          : ((totalprofitCount + totalprofitCount1) * 25).toFixed(2);
 
         document.getElementById("pnl-over").innerText = isNaN(
           (profitCount + profitCount1).toFixed(2)
@@ -671,17 +577,6 @@
           : (profitCount + profitCount1).toFixed(2);
       });
     }, 1000);
-    function myFunction(id) {
-      console.log("idididididid", id);
-      var x = document.getElementById(id);
-      console.log("xxxxx", x);
-      if (x.style.display === "none") {
-        x.style.display = "";
-        document.getElementById("leg-tr").setAttribute("class", "leg-tr");
-      } else {
-        x.style.display = "none";
-        document.getElementById("leg-tr").setAttribute("class", "");
-      }
-    }
   </script>
+  <script type="text/JavaScript" src="https://MomentJS.com/downloads/moment.js"></script>
 </body>
